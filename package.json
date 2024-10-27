@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "recent-logic-pro-projects",
-  "title": "Logic Pro Projects",
+  "name": "logic-projects",
+  "title": "Logic Projects",
   "description": "Quickly access your most recent Logic Pro projects.",
   "icon": "logic-512.png",
   "author": "talbx",
