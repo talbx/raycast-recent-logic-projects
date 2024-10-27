@@ -1,4 +1,4 @@
-import {Action, ActionPanel, Icon, List, open} from "@raycast/api";
+import {Action, ActionPanel, getPreferenceValues, Icon, List, open, openCommandPreferences} from "@raycast/api";
 import {useEffect, useState} from "react";
 import {exec} from "node:child_process";
 import {promisify} from "node:util";
@@ -12,49 +12,39 @@ export interface LogicProject {
     lastModified: Date
 }
 
-export default function Command(props: { arguments: { folderPath?: string } }) {
+export default function Command() {
     const [projects, setProjects] = useState<LogicProject[]>([]);
     const [, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error>();
-    //const {directories} = getPreferenceValues();
     // default location
-    const [path, setPath] = useState<string>("~/Music/Logic")
-    const [searchText, setSearchText] = useState("~/Music/Logic");
-
+    const preferences = getPreferenceValues<Preferences>();
     useEffect(() => {
-        console.log(props.arguments)
+        const location = preferences["projects-location"]
         const execAsync = promisify(exec);
         setIsLoading(true);
         setError(undefined)
-        if (searchText !== undefined) {
-            setPath(searchText)
-        }
 
         execAsync(
             // `ls -A1 ${path} | grep .logicx`
-            `find ${path} -regex ".*\\.\\(logicx\\)" | head -n 200 | xargs -I{} stat -f "%N,%m" "{}"`
+            `find ${location} -regex ".*\\.\\(logicx\\)" | head -n 200 | xargs -I{} stat -f "%N,%m" "{}"`
         ).then(result => {
             if (result.stderr !== null && result.stderr !== "") {
-                console.log("err", result.stderr)
                 setError(new Error(result.stderr))
                 return []
             }
-            console.log("no err")
             const projects: LogicProject[] = result.stdout.trim().split("\n").filter(entry => entry.includes(","))
                 .map(entry => {
                     const [p, lastModified] = entry.split(",");
                     const lastModifiedDate = new Date(Number(lastModified) * 1000);
                     const lastSlashIndex = p.lastIndexOf("/");
-                    //const beforeLastSlash = p.substring(0, lastSlashIndex);  // "path/to/your"
-                    const afterLastSlash = p.substring(lastSlashIndex + 1);  // "file.txt"
-
+                    const afterLastSlash = p.substring(lastSlashIndex + 1);
                     return {
                         name: afterLastSlash,
                         lastModified: isNaN(lastModifiedDate.getTime()) ? new Date(0) : lastModifiedDate, // Handle invalid dates
                         id: crypto.createHash("md5").update(entry).digest("hex"),
-                        path: path
+                        path: p
                     }
-                }).sort((a,b) => {
+                }).sort((a, b) => {
                     if (a.lastModified < b.lastModified) {
                         return 1
                     }
@@ -64,16 +54,14 @@ export default function Command(props: { arguments: { folderPath?: string } }) {
             setProjects(projects)
             setIsLoading(false)
         }).catch(err => {
-            console.log("err", err)
             setError(new Error(err))
             return []
         })
-    }, [setProjects, setIsLoading, setError, path, setPath, searchText])
+    }, [setProjects, setIsLoading, setError])
 
 
     useEffect(() => {
         if (error !== undefined) {
-
             showFailureToast(error, {
                 title: "Something went wrong",
             });
@@ -82,8 +70,14 @@ export default function Command(props: { arguments: { folderPath?: string } }) {
 
     return (
         <List
-            searchText={searchText}
-            onSearchTextChange={setSearchText}>
+            filtering={true}
+            throttle={true}
+            actions={
+                <ActionPanel>
+                    <Action title="Open Extension Preferences" onAction={openCommandPreferences}/>
+                </ActionPanel>
+            }
+        >
             {
                 projects.map(project => {
                     return <List.Item
@@ -95,11 +89,12 @@ export default function Command(props: { arguments: { folderPath?: string } }) {
                                 }
                             }
                         ]}
-                        icon={Icon.Headphones}
+                        icon={{ source: "https://help.apple.com/assets/654E7F8CD472768668095520/654E7F9560B6B45E960FE823/de_DE/390711ce08c61bf054d3dc4dfb9080ae.png" }}
                         title={project.name}
                         actions={
                             <ActionPanel>
                                 <Action title="Open Project" onAction={() => open(project.path)}/>
+                                <Action title="Open Extension Preferences" onAction={openCommandPreferences}/>
                             </ActionPanel>
                         }
                         detail={<List.Item.Detail markdown={"#Hello!"}/>}
@@ -107,7 +102,20 @@ export default function Command(props: { arguments: { folderPath?: string } }) {
                     />
                 })
             }
-
+            {
+                projects.length == 0 && <List.EmptyView
+                    actions={
+                        <ActionPanel>
+                            <Action title="Open Extension Preferences" onAction={openCommandPreferences}/>
+                        </ActionPanel>
+                    }
+                    icon={Icon.EmojiSad}
+                    title={"No Logic projects found."}
+                    description={`Are you sure you picked the right directory?
+${preferences["projects-location"]} is currently selected.
+Open the extension preferences (Enter) to change the directory.`}>
+                </List.EmptyView>
+            }
         </List>
     );
 }

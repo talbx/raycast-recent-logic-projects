@@ -17,6 +17,16 @@
       "mode": "view"
     }
   ],
+  "preferences": [
+    {
+      "name": "projects-location",
+      "default": "~/Music/Logic/",
+      "required": true,
+      "type": "directory",
+      "title": "Your Logic projects directory",
+      "description": "The location where you store your logic projects, used by this extension"
+    }
+  ],
   "dependencies": {
     "@raycast/api": "^1.84.3",
     "@raycast/utils": "^1.17.0"
