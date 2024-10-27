@@ -77,6 +77,7 @@ export default function Command() {
     <List
       filtering={true}
       throttle={true}
+      searchBarPlaceholder={"Filter projects..."}
       actions={
         <ActionPanel>
           <Action title="Open Extension Preferences" onAction={openCommandPreferences} />

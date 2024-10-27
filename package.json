@@ -1,9 +1,9 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "recent-logic-pro-projects",
-  "title": "Recent Logic Pro Projects",
+  "title": "Logic Pro Projects",
   "description": "Quickly access your most recent Logic Pro projects.",
-  "icon": "extension-icon.png",
+  "icon": "logic-512.png",
   "author": "talbx",
   "categories": [
     "Productivity"
@@ -12,7 +12,7 @@
   "commands": [
     {
       "name": "recent-logic-pro-projects",
-      "title": "Recent Logic Pro Projects",
+      "title": "Search Recent Projects",
       "description": "Quickly access your most recent Logic Pro projects.",
       "mode": "view"
     }
@@ -23,7 +23,7 @@
       "default": "~/Music/Logic/",
       "required": true,
       "type": "directory",
-      "title": "Your Logic projects directory",
+      "title": "Your Logic Pro projects directory",
       "description": "The location where you store your logic projects, used by this extension"
     }
   ],
